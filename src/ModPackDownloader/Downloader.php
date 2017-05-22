@@ -26,6 +26,11 @@ class Downloader
      */
     protected $manifest = [];
 
+    /**
+     * @var array
+     */
+    protected $errors = [];
+
     /** @var Logger */
     protected $log;
 
@@ -96,30 +101,53 @@ class Downloader
         $this->out('ModPack: ' . $this->manifest['name']);
         $this->out('Version: ' . $this->manifest['version']);
 
+        $modCount = count($this->manifest['files']);
+
+        $this->out('Mods to download: ' . $modCount);
+
+        $counter = 0;
 
         foreach ($this->manifest['files'] as $file) {
+            $counter++;
+
             $projectUrl = self::CurseProjectBaseUrl . '/projects/' . $file['projectID'];
             $downloadUri = $projectUrl . '/files/' . $file['fileID'] . '/download';
 
-            $this->out('Downloading ' . $downloadUri);
+            $this->out('[' . $counter . '/' . $modCount . '] Downloading ' . $downloadUri);
 
             try {
                 $modFilename = $this->stream($downloadUri);
 
-                $this->out('Saved to: ' . $modFilename);
+                $this->out("\tSaved to: " . $modFilename);
             } catch (\Exception $e) {
+                $this->errors[$downloadUri] = $e->getMessage();
+
                 $this->out('Unable to download mod. Please manually fetch ' . $downloadUri, 'error');
                 $this->out('Error: ' . $e->getMessage());
             }
         }
+
+        $this->out('');
+        $this->out('Finished.');
+
+        if (!empty($this->errors)) {
+            $this->out('');
+            $this->out('Error count: ' . count($this->errors));
+            $this->out($this->errors);
+        }
     }
 
-    public function out($string, $level = 'info', $logThisMessage = true)
+    public function out($var, $level = 'info', $logThisMessage = true)
     {
-        echo $string . "\n";
+        if (is_array($var)) {
+            echo var_export($var, true) . "\n";
+        } else {
+            echo $var . "\n";
+        }
 
         if ($logThisMessage) {
-            $this->log->log($level, $string);
+            $var = !is_array($var) ? $var : json_encode($var);
+            $this->log->log($level, $var);
         }
     }
 
