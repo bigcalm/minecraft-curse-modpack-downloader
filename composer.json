@@ -1,0 +1,13 @@
+{
+    "require-dev": {
+        "phpspec/phpspec": "^3.4"
+    },
+    "require": {
+        "guzzlehttp/guzzle": "~6.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "": "src"
+        }
+    }
+}
