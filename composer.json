@@ -3,7 +3,8 @@
         "phpspec/phpspec": "^3.4"
     },
     "require": {
-        "guzzlehttp/guzzle": "~6.2"
+        "guzzlehttp/guzzle": "~6.2",
+        "monolog/monolog": "~1"
     },
     "autoload": {
         "psr-4": {

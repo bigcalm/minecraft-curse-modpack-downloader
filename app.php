@@ -18,6 +18,16 @@ while (count($cliArguments)) {
     }
 }
 
+
 $downloader = new ModPackDownloader\Downloader();
+
+
+if (isset($inputs[0])) {
+    $downloader->setManifestFile($inputs[0]);
+}
+
+if (isset($inputs[1])) {
+    $downloader->setModsDirectory($inputs[1]);
+}
 
 $downloader->download();
