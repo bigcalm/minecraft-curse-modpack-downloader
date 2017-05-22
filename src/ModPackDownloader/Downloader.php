@@ -120,9 +120,10 @@ class Downloader
 
                 $this->out("\tSaved to: " . $modFilename);
             } catch (\Exception $e) {
-                $this->errors[$downloadUri] = $e->getMessage();
+                $humanMessage = 'Unable to download mod. Please manually fetch the ' . $this->manifest['minecraft']['version'] . ' version from: ' .  $projectUrl . '/files';
+                $this->errors[$downloadUri] = $humanMessage;
 
-                $this->out('Unable to download mod. Please manually fetch ' . $downloadUri, 'error');
+                $this->out($humanMessage, 'error');
                 $this->out('Error: ' . $e->getMessage());
             }
         }
