@@ -3,6 +3,13 @@ namespace Widget;
 
 use Symfony\Component\DomCrawler\Crawler;
 
+/**
+ * Class CurseCrawler
+ *
+ * Based upon https://github.com/citricsquid/widget/blob/ea39b0683e997977987835b31764b269be6c20a7/src/CurseCrawler.php
+ *
+ * @package Widget
+ */
 class CurseCrawler extends Crawler {
 
     /**
