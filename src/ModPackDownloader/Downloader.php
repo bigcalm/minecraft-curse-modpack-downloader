@@ -6,6 +6,7 @@ use GuzzleHttp\RequestOptions;
 use GuzzleHttp\Client;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use Widget\CurseCrawler;
 
 class Downloader
 {
@@ -137,10 +138,13 @@ class Downloader
         if (!empty($this->errors)) {
             $this->out('Error count: ' . count($this->errors));
 
-            $this->out('Unable to download some mods. Please manually fetch the ' . $this->manifest['minecraft']['version'] . ' version from: ');
+            $this->out('Attempting to find ' . $this->manifest['minecraft']['version'] . ' versions: ');
 
             $this->out('');
-            $this->out($this->errors);
+
+            foreach ($this->errors as $index => $projectUrl) {
+                $this->downloadAlternateVersion($index, $projectUrl);
+            }
         }
     }
 
@@ -194,5 +198,55 @@ class Downloader
         rename($tmpFile, $this->modsDirectory . '/' . $decodedFilename);
 
         return $decodedFilename;
+    }
+
+    /**
+     * Parse curse.com HTML for project properties
+     *
+     * @param string $html
+     * @return array
+     */
+    public function parse($html)
+    {
+        $crawler = new CurseCrawler();
+        
+        $crawler->add($html);
+
+        $properties = [
+            'files' => $crawler->filter('table.project-file-listing tbody tr.project-file-list-item')->eachWithoutNull(function ($node, $i) {
+                /** @var CurseCrawler $node */
+
+                return [
+                    'url' => trim(self::CurseProjectBaseUrl . $node->filter('td.project-file-name a')->attr('href')),
+                    'minecraft-version' => trim($node->filter('td.project-file-game-version')->text()),
+                ];
+            })
+        ];
+
+        return $properties;
+    }
+
+    public function downloadAlternateVersion($index, $projectUrl)
+    {
+        try {
+            $client = new Client();
+            $response = $client->request('GET', $projectUrl . '/files');
+
+            $projectProperties = $this->parse((string)$response->getBody());
+
+            $requiredVersion = $this->manifest['minecraft']['version'];
+
+            foreach ($projectProperties['files'] as $projectFile) {
+                if ($projectFile['minecraft-version'] == $requiredVersion) {
+                    $modFilename = $this->stream($projectFile['url']);
+
+                    $this->out($index . ' ' . $modFilename);
+
+                    break;
+                }
+            }
+        } catch (\Exception $e) {
+            $this->out('Error: ' . $e->getMessage(), Logger::ERROR);
+        }
     }
 }
