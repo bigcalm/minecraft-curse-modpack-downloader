@@ -10,6 +10,7 @@ use Monolog\Handler\StreamHandler;
 class Downloader
 {
     const CurseProjectBaseUrl = "https://minecraft.curseforge.com";
+    const LOG_DISPLAY_LEVEL = Logger::INFO;
 
     /**
      * @var string
@@ -84,12 +85,12 @@ class Downloader
     public function download()
     {
         if (empty($this->manifestFile)) {
-            $this->out('Missing manifest file', 'critical');
+            $this->out('Missing manifest file', Logger::CRITICAL);
             throw new \InvalidArgumentException('Missing manifest file');
         }
 
         if (empty($this->modsDirectory)) {
-            $this->out('Missing mods directory', 'critical');
+            $this->out('Missing mods directory', Logger::CRITICAL);
             throw new \InvalidArgumentException('Missing mods directory');
         }
 
@@ -105,26 +106,28 @@ class Downloader
 
         $this->out('Mods to download: ' . $modCount);
 
-        $counter = 0;
+        $index = 0;
 
         foreach ($this->manifest['files'] as $file) {
-            $counter++;
+            $index++;
+
+            $counter = '[' . $index . '/' . $modCount . ']';
 
             $projectUrl = self::CurseProjectBaseUrl . '/projects/' . $file['projectID'];
+
             $downloadUri = $projectUrl . '/files/' . $file['fileID'] . '/download';
 
-            $this->out('[' . $counter . '/' . $modCount . '] Downloading ' . $downloadUri);
+            $this->out($counter . ' Downloading ' . $downloadUri, Logger::DEBUG);
 
             try {
                 $modFilename = $this->stream($downloadUri);
 
-                $this->out("\tSaved to: " . $modFilename);
+                $this->out($counter . ' ' . $modFilename);
             } catch (\Exception $e) {
-                $humanMessage = 'Unable to download mod. Please manually fetch the ' . $this->manifest['minecraft']['version'] . ' version from: ' .  $projectUrl . '/files';
-                $this->errors[$downloadUri] = $humanMessage;
+                $this->errors[$counter] = $projectUrl;
 
-                $this->out($humanMessage, 'error');
-                $this->out('Error: ' . $e->getMessage());
+                $this->out($counter . ' Unable to download', Logger::ERROR);
+                $this->out("\tError: " . $e->getMessage(), Logger::ERROR);
             }
         }
 
@@ -132,24 +135,27 @@ class Downloader
         $this->out('Finished.');
 
         if (!empty($this->errors)) {
-            $this->out('');
             $this->out('Error count: ' . count($this->errors));
+
+            $this->out('Unable to download some mods. Please manually fetch the ' . $this->manifest['minecraft']['version'] . ' version from: ');
+
+            $this->out('');
             $this->out($this->errors);
         }
     }
 
-    public function out($var, $level = 'info', $logThisMessage = true)
+    public function out($var, $level = Logger::INFO)
     {
-        if (is_array($var)) {
-            echo var_export($var, true) . "\n";
-        } else {
-            echo $var . "\n";
+        if ($level >= self::LOG_DISPLAY_LEVEL) {
+            if (is_array($var)) {
+                echo var_export($var, true) . "\n";
+            } else {
+                echo $var . "\n";
+            }
         }
 
-        if ($logThisMessage) {
-            $var = !is_array($var) ? $var : json_encode($var);
-            $this->log->log($level, $var);
-        }
+        $var = !is_array($var) ? $var : json_encode($var);
+        $this->log->log($level, $var);
     }
 
 
