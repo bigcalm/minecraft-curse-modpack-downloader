@@ -4,6 +4,8 @@ A simple system, written in PHP, that will take a modpack `manifest.json` file a
 
 Originally written to allow for the Project Ozone 2 modpack to be run on Linux. Likely to work with any other listed on the Curse Forge.
 
+The app will download each mod that it can. For any mods that fail to download, the app will attempt to find the mod's file that is compatible with the modpack's stated version of Minecraft.
+
 ## Usage
 
 ```bash
@@ -72,5 +74,84 @@ I'm using Project Ozone 2. So we'll:
 
 The important bits are the `manifest.json` file and `overrides/` directory.
 
+Take a look at the top of the `mainfest.json` file.
+
+I used:
+
+```bash
+head Project\ Ozone\ 2-2.2.7/manifest.json
+```
+
+Which produced:
+
+```json
+{
+  "minecraft": {
+    "version": "1.7.10",
+    "modLoaders": [
+      {
+        "id": "forge-10.13.4.1614",
+        "primary": true
+      }
+    ]
+  },
+```
+
+We need to know the version of Minecraft the ModPack is for. And the version of Forge is will use.
+
+Looking at the above output, we have:
+
+* Minecraft Version: 1.7.10
+* Forge Version: 10.13.4.1614
+
+Keep this information for the next step.
+
 #### 3. Add a new instance to MultiMC
 
+I'm not going to pretend I know everything about MultiMC, and I won't try to document it all.
+
+But here are the minimum steps needed to move forwards.
+
+* Add a new instance (button top left or right click in the blank area).
+* Give the instance a meaningful name. I shall use `Project Ozone 2 - 2.2.7`.
+* For `Vanilla Minecraft (select version)` chose the version that was obtained from the `manifest.json` file. `1.7.10` in this instance.
+* Hit `OK` to save your selections.
+* Right click on the new instance icon and choose `Edit instance`
+* In the right hand coloumn of the new window are a load of buttons, hit `Install Forge`
+* Choose the version of Forge that matches the info in the `manifest.json` file. `10.13.4.1614` in this instance.
+  * At time of writing, this is the latest and possibly last version of Forge for this version of Minecraft. While it has the bug icon, it will still work!.
+
+#### 4. Install the downloader requirements
+
+I will assume that you have PHP installed.
+
+Run:
+
+```bash
+./composer.phar install
+```
+
+That was easy.
+
+#### 5. Download the ModPack mods!
+
+Finally we are ready to download some sweet mods.
+
+To do so, we needed 2 things:
+
+1. The `manifest.json` file.
+2. The location for mods to be downloaded to.
+
+As I have chosen to name the instance as `Project Ozone 2 - 2.2.7`, the mods directory will be `MultiMC/instances/Project Ozone 2 - 2.2.7/minecraft/mods`.
+
+Run the PHP app, providing the full path to the `manifest.json` file and the instance's `mods` directory.
+
+```bash
+php app.php ~/Downloads/Project\ Ozone\ 2-2.2.7/manifest.json ~/bin/minecraft/MultiMC/instances/Project\ Ozone\ 2\ -\ 2.2.7/minecraft/mods/
+```
+
+This will parse the `manifest.json` file, downloading each mod file into the specified `mods` directory.
+
+If any of the listed mod files are not available for download, then the app will attempt to download the latest version that is compatible with the modpack's minecraft version.
+
+This might not always desired, but the app will display information as to what it is doing. Allowing you to remove unwanted mods.
