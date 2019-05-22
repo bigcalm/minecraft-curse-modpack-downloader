@@ -133,7 +133,6 @@ class Downloader
         }
 
         $this->out('');
-        $this->out('Finished.');
 
         if (!empty($this->errors)) {
             $this->out('Error count: ' . count($this->errors));
