@@ -1,3 +1,15 @@
+# Abandond
+
+This project was to scratch an itch some years ago.
+
+If you find the code interesting, great! However I recommend using other utilities to download modpacks from curse.
+
+Infact, MultiMC will do it all itself. Had I realised sooner, this project wouldn't have been written.
+
+Good luck in all future endevors :)
+
+---
+
 # Minecraft Curse Modpack Downloader
 
 A simple system, written in PHP, that will take a modpack `manifest.json` file and download each listed mod from the Curse Forge, then copy over the override files specific to the ModPack.
